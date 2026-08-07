@@ -469,3 +469,4 @@ MIT — applies to the converter (code + skill definition) in this repository, *
    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=virgiliojr94/book-to-skill&type=date&legend=top-left" />
  </picture>
 </a>
+"## Main Branch Conflicts Here" 
