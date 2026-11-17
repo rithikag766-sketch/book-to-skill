@@ -1,0 +1,113 @@
+INPUT
+  Line 1 times: [7, 9, 3, 4, 8, 4]  transfer-from-line-1: [2, 3, 1, 3, 4]  entry/exit: 2 3
+  Line 2 times: [8, 5, 6, 4, 5, 7]  transfer-from-line-2: [2, 1, 2, 2, 1]  entry/exit: 4 2
+
+########## 4.1 + 4.2 base case ##########
+--- Base case ---
+  Station 1: f1 = 2+7 = 9,  f2 = 4+8 = 12   (entry only)
+  Stn |  L1 stay L1 transfer      pick |  L2 stay L2 transfer      pick | f1  f2
+  2   |       18          23      stay |       17          16  transfer | 18  16
+  3   |       21          20  transfer |       22          27      stay | 20  22
+  4   |       24          28      stay |       26          25  transfer | 24  25
+  5   |       32          35      stay |       30          32      stay | 32  30
+  6   |       36          35  transfer |       37          43      stay | 35  37
+  Exit: line1 35+3 = 38, line2 37+2 = 39
+  Entry
+    |
+  Line 1 - Station 1
+    | TRANSFER (line 1 -> line 2)
+  Line 2 - Station 2
+    | TRANSFER (line 2 -> line 1)
+  Line 1 - Station 3
+    | TRANSFER (line 1 -> line 2)
+  Line 2 - Station 4
+    |
+  Line 2 - Station 5
+    | TRANSFER (line 2 -> line 1)
+  Line 1 - Station 6
+    |
+  Exit
+  Lines per station: [1, 2, 1, 2, 2, 1]
+  Transfer points (after station, from line, to line): [(1, 1, 2), (2, 2, 1), (3, 1, 2), (5, 2, 1)]
+  Minimum Production Time = 38
+
+########## 4.3 Predict before you execute ##########
+  Change: transfer time leaving line 1 after station 1 (T1[1]) rises from 2 to 20.
+  PREDICTION (recorded before running):
+   * The route WILL change. The base route starts on line 1 and immediately transfers to line 2
+     after station 1; that transfer is the decision most likely affected.
+   * A product starting on line 1 would now stay for station 2 (cost 9) instead of paying 20,
+     or the product would start on line 2 (entry 4 + 8 = 12) and avoid the transfer altogether.
+   * The minimum total time should INCREASE (the base optimum used the now-expensive edge), but by
+     far less than 18, because cheaper alternatives exist.
+--- Modified: T1[1] = 20 ---
+  Station 1: f1 = 2+7 = 9,  f2 = 4+8 = 12   (entry only)
+  Stn |  L1 stay L1 transfer      pick |  L2 stay L2 transfer      pick | f1  f2
+  2   |       18          23      stay |       17          34      stay | 18  17
+  3   |       21          21      stay |       23          27      stay | 21  23
+  4   |       25          29      stay |       27          26  transfer | 25  26
+  5   |       33          36      stay |       31          33      stay | 33  31
+  6   |       37          36  transfer |       38          44      stay | 36  38
+  Exit: line1 36+3 = 39, line2 38+2 = 40
+  Entry
+    |
+  Line 1 - Station 1
+    |
+  Line 1 - Station 2
+    |
+  Line 1 - Station 3
+    | TRANSFER (line 1 -> line 2)
+  Line 2 - Station 4
+    |
+  Line 2 - Station 5
+    | TRANSFER (line 2 -> line 1)
+  Line 1 - Station 6
+    |
+  Exit
+  Lines per station: [1, 1, 1, 2, 2, 1]
+  Transfer points (after station, from line, to line): [(3, 1, 2), (5, 2, 1)]
+  Minimum Production Time = 39
+
+  OBSERVED: route changed = True; time 38 -> 39 (change +1)
+  Lines per station: base [1, 2, 1, 2, 2, 1]  modified [1, 1, 1, 2, 2, 1]
+
+########## 4.4 Production disruption ##########
+  Change: line 1 station 3 slows from 3 to 25.
+  PREDICTION: the base route uses line 1 at station 3 after a transfer; the optimiser should avoid it,
+  staying on line 2 through station 3, and total time should rise by well under 22.
+--- Disruption: line 1 station 3 = 25 ---
+  Station 1: f1 = 2+7 = 9,  f2 = 4+8 = 12   (entry only)
+  Stn |  L1 stay L1 transfer      pick |  L2 stay L2 transfer      pick | f1  f2
+  2   |       18          23      stay |       17          16  transfer | 18  16
+  3   |       43          42  transfer |       22          27      stay | 42  22
+  4   |       46          28  transfer |       26          47      stay | 28  26
+  5   |       36          36      stay |       31          36      stay | 36  31
+  6   |       40          36  transfer |       38          47      stay | 36  38
+  Exit: line1 36+3 = 39, line2 38+2 = 40
+  Entry
+    |
+  Line 1 - Station 1
+    | TRANSFER (line 1 -> line 2)
+  Line 2 - Station 2
+    |
+  Line 2 - Station 3
+    |
+  Line 2 - Station 4
+    |
+  Line 2 - Station 5
+    | TRANSFER (line 2 -> line 1)
+  Line 1 - Station 6
+    |
+  Exit
+  Lines per station: [1, 2, 2, 2, 2, 1]
+  Transfer points (after station, from line, to line): [(1, 1, 2), (5, 2, 1)]
+  Minimum Production Time = 39
+
+  Route changed: True; time 38 -> 39 (+1)
+  First station where the route differs from the base route: 3
+
+########## Boundary / failure tests ##########
+  n = 1 station: time=5, route lines=[2]  (expected 1+3+1 = 5 on line 2)
+  all-equal times, zero transfers: time=3, route=[1, 1, 1] (tie -> stays on line 1)
+  unequal line lengths rejected: both lines need the same, non-zero number of stations
+  negative time rejected: times must be non-negative

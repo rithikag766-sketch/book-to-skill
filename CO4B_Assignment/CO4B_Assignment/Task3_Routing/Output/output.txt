@@ -1,0 +1,102 @@
+Network: 8 vertices, 13 directed edges
+Edges: A->B(4), A->C(2), B->D(5), C->B(1), C->D(8), C->E(10), D->F(2), E->D(2), E->G(3), F->G(6), F->H(4), G->H(1), D->E(3)
+
+########## STAGE A - Dijkstra, source A ##########
+  Shortest distances, predecessors and paths
+  Vertex  Distance  Pred  Path
+  A              0  None  A
+  B              3  C     A -> C -> B
+  C              2  A     A -> C
+  D              8  B     A -> C -> B -> D
+  E             11  D     A -> C -> B -> D -> E
+  F             10  D     A -> C -> B -> D -> F
+  G             14  E     A -> C -> B -> D -> E -> G
+  H             14  F     A -> C -> B -> D -> F -> H
+  Order in which vertices are finalised: A(0) , C(2) , B(3) , D(8) , F(10) , E(11) , G(14) , H(14)
+
+########## STAGE B - negative edge G->F (-5) ##########
+  PREDICTION (recorded BEFORE running the modified graph):
+   1. Dijkstra will NOT remain valid. F is finalised at distance 10 (via D) before G is
+      finalised at 13. The new edge G->F(-5) offers F a cost of 13-5 = 8, but Dijkstra never
+      revisits a finalised vertex, so it will keep F = 10.
+   2. The decisions affected are the routes to F and to H (H is reached through F):
+      expected true cost of H = 8 + 4 = 12 instead of Dijkstra's 14, and the route to H
+      should change from A-C-B-D-F-H to a route that passes through G and returns to F.
+   3. The edge was chosen so that F->G->F has weight 6-5 = +1 > 0, so no negative cycle
+      exists and Bellman-Ford should converge normally.
+
+  Dijkstra on the modified graph (UNRELIABLE)
+  Vertex  Distance  Pred  Path
+  A              0  None  A
+  B              3  C     A -> C -> B
+  C              2  A     A -> C
+  D              8  B     A -> C -> B -> D
+  E             11  D     A -> C -> B -> D -> E
+  F             10  D     A -> C -> B -> D -> F
+  G             14  E     A -> C -> B -> D -> E -> G
+  H             14  F     A -> C -> B -> D -> F -> H
+  Dijkstra finalisation order: A(0) , C(2) , B(3) , D(8) , F(10) , E(11) , G(14) , H(14)
+
+  Bellman-Ford negative cycle reported: None
+  Bellman-Ford on the modified graph (5 passes)
+  Vertex  Distance  Pred  Path
+  A              0  None  A
+  B              3  C     A -> C -> B
+  C              2  A     A -> C
+  D              8  B     A -> C -> B -> D
+  E             11  D     A -> C -> B -> D -> E
+  F              9  G     A -> C -> B -> D -> E -> G -> F
+  G             14  E     A -> C -> B -> D -> E -> G
+  H             13  F     A -> C -> B -> D -> E -> G -> F -> H
+
+  Vertices where Dijkstra and Bellman-Ford disagree:
+    F: Dijkstra=10 via A -> C -> B -> D -> F   Bellman-Ford=9 via A -> C -> B -> D -> E -> G -> F
+    H: Dijkstra=14 via A -> C -> B -> D -> F -> H   Bellman-Ford=13 via A -> C -> B -> D -> E -> G -> F -> H
+
+########## STAGE C - reachable negative cycle ##########
+  Added edge D->E(-5). Cycle D -> E -> D has weight -5 + 2 = -3 and is reachable from A.
+  NEGATIVE CYCLE DETECTED on pass 8: E -> D -> E  (cycle weight = -3)
+  No shortest-path table is returned: distances are undefined for every vertex reachable
+  from the cycle (D, E, F, G, H).
+  Floyd cross-check, vertices with a negative diagonal entry: ['D', 'E']
+
+  Detection mechanism: with |V| = 8 any shortest SIMPLE path has at most 7 edges, so 7 passes of
+  relaxing every edge are enough. If an edge can still be relaxed on pass 8, some path has more
+  than 7 edges and is still getting cheaper, which is only possible through a negative cycle.
+  The cycle itself is recovered by walking predecessor links back |V| steps.
+
+########## STAGE D - all pairs (Floyd) and reachability (Warshall), base graph ##########
+  Floyd distance matrix
+           A     B     C     D     E     F     G     H
+  A        0     3     2     8    11    10    14    14
+  B      inf     0   inf     5     8     7    11    11
+  C      inf     1     0     6     9     8    12    12
+  D      inf   inf   inf     0     3     2     6     6
+  E      inf   inf   inf     2     0     4     3     4
+  F      inf   inf   inf   inf   inf     0     6     4
+  G      inf   inf   inf   inf   inf   inf     0     1
+  H      inf   inf   inf   inf   inf   inf   inf     0
+
+  Warshall reachability matrix (1 = reachable)
+           A     B     C     D     E     F     G     H
+  A        1     1     1     1     1     1     1     1
+  B        0     1     0     1     1     1     1     1
+  C        0     1     1     1     1     1     1     1
+  D        0     0     0     1     1     1     1     1
+  E        0     0     0     1     1     1     1     1
+  F        0     0     0     0     0     1     1     1
+  G        0     0     0     0     0     0     1     1
+  H        0     0     0     0     0     0     0     1
+
+  Floyd distance matrix on the G->F(-5) graph
+           A     B     C     D     E     F     G     H
+  A        0     3     2     8    11     9    14    13
+  B      inf     0   inf     5     8     6    11    10
+  C      inf     1     0     6     9     7    12    11
+  D      inf   inf   inf     0     3     1     6     5
+  E      inf   inf   inf     2     0    -2     3     2
+  F      inf   inf   inf   inf   inf     0     6     4
+  G      inf   inf   inf   inf   inf    -5     0    -1
+  H      inf   inf   inf   inf   inf   inf   inf     0
+  Floyd row A equals Bellman-Ford distances: True
+  negative cycle present: False

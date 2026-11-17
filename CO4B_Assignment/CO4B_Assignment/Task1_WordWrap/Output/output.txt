@@ -1,0 +1,94 @@
+########## 1.1 + 1.2  Base case with DP states ##########
+=== Base case | W = 20 ===
+Minimum total penalty = 144
+Line Words on line                                    Unused  Penalty
+1    Dynamic programming                                   1        1
+2    breaks a hard                                         7       49
+3    problem into                                          8       64
+4    smaller overlapping                                   1        1
+5    subproblems and                                       5       25
+6    stores their answers                                  0        0
+7    so that nothing is                                    2        4
+8    computed twice                                        6        0
+Greedy first-fit penalty (comparison only) = 160
+
+DP states (computed from the END of the text backwards):
+  dp[i]   = minimum penalty for laying out words[i:]
+  next[i] = index of the first word of the line that follows the line starting at i
+  i=19 'twice': dp[19]=0, next=20 | [19:20) unused=15 cost=0 -> 0+dp[20]=0
+  i=18 'computed': dp[18]=0, next=20 | [18:19) unused=12 cost=144 -> 144+dp[19]=144; [18:20) unused=6 cost=0 -> 0+dp[20]=0
+  i=17 'is': dp[17]=0, next=20 | [17:18) unused=18 cost=324 -> 324+dp[18]=324; [17:19) unused=9 cost=81 -> 81+dp[19]=81; [17:20) unused=3 cost=0 -> 0+dp[20]=0
+  i=16 'nothing': dp[16]=1, next=19 | [16:17) unused=13 cost=169 -> 169+dp[17]=169; [16:18) unused=10 cost=100 -> 100+dp[18]=100; [16:19) unused=1 cost=1 -> 1+dp[19]=1
+  i=15 'that': dp[15]=25, next=18 | [15:16) unused=16 cost=256 -> 256+dp[16]=257; [15:17) unused=8 cost=64 -> 64+dp[17]=64; [15:18) unused=5 cost=25 -> 25+dp[18]=25
+  i=14 'so': dp[14]=4, next=18 | [14:15) unused=18 cost=324 -> 324+dp[15]=349; [14:16) unused=13 cost=169 -> 169+dp[16]=170; [14:17) unused=5 cost=25 -> 25+dp[17]=25; [14:18) unused=2 cost=4 -> 4+dp[18]=4
+  i=13 'answers': dp[13]=26, next=16 | [13:14) unused=13 cost=169 -> 169+dp[14]=173; [13:15) unused=10 cost=100 -> 100+dp[15]=125; [13:16) unused=5 cost=25 -> 25+dp[16]=26
+  i=12 'their': dp[12]=41, next=15 | [12:13) unused=15 cost=225 -> 225+dp[13]=251; [12:14) unused=7 cost=49 -> 49+dp[14]=53; [12:15) unused=4 cost=16 -> 16+dp[15]=41
+  i=11 'stores': dp[11]=4, next=14 | [11:12) unused=14 cost=196 -> 196+dp[12]=237; [11:13) unused=8 cost=64 -> 64+dp[13]=90; [11:14) unused=0 cost=0 -> 0+dp[14]=4
+  i=10 'and': dp[10]=42, next=13 | [10:11) unused=17 cost=289 -> 289+dp[11]=293; [10:12) unused=10 cost=100 -> 100+dp[12]=141; [10:13) unused=4 cost=16 -> 16+dp[13]=42
+  i=9  'subproblems': dp[9]=29, next=11 | [9:10) unused=9 cost=81 -> 81+dp[10]=123; [9:11) unused=5 cost=25 -> 25+dp[11]=29
+  i=8  'overlapping': dp[8]=110, next=9 | [8:9) unused=9 cost=81 -> 81+dp[9]=110
+  i=7  'smaller': dp[7]=30, next=9 | [7:8) unused=13 cost=169 -> 169+dp[8]=279; [7:9) unused=1 cost=1 -> 1+dp[9]=30
+  i=6  'into': dp[6]=174, next=8 | [6:7) unused=16 cost=256 -> 256+dp[7]=286; [6:8) unused=8 cost=64 -> 64+dp[8]=174
+  i=5  'problem': dp[5]=94, next=7 | [5:6) unused=13 cost=169 -> 169+dp[6]=343; [5:7) unused=8 cost=64 -> 64+dp[7]=94; [5:8) unused=0 cost=0 -> 0+dp[8]=110
+  i=4  'hard': dp[4]=39, next=7 | [4:5) unused=16 cost=256 -> 256+dp[5]=350; [4:6) unused=8 cost=64 -> 64+dp[6]=238; [4:7) unused=3 cost=9 -> 9+dp[7]=39
+  i=3  'a': dp[3]=31, next=7 | [3:4) unused=19 cost=361 -> 361+dp[4]=400; [3:5) unused=14 cost=196 -> 196+dp[5]=290; [3:6) unused=6 cost=36 -> 36+dp[6]=210; [3:7) unused=1 cost=1 -> 1+dp[7]=31
+  i=2  'breaks': dp[2]=143, next=5 | [2:3) unused=14 cost=196 -> 196+dp[3]=227; [2:4) unused=12 cost=144 -> 144+dp[4]=183; [2:5) unused=7 cost=49 -> 49+dp[5]=143
+  i=1  'programming': dp[1]=35, next=3 | [1:2) unused=9 cost=81 -> 81+dp[2]=224; [1:3) unused=2 cost=4 -> 4+dp[3]=35; [1:4) unused=0 cost=0 -> 0+dp[4]=39
+  i=0  'Dynamic': dp[0]=144, next=2 | [0:1) unused=13 cost=169 -> 169+dp[1]=204; [0:2) unused=1 cost=1 -> 1+dp[2]=144
+  i=20 (empty suffix): dp[20]=0
+
+########## 1.3  Requirement change: three different widths ##########
+=== Modified case | W = 16 ===
+Minimum total penalty = 281
+Line Words on line                                    Unused  Penalty
+1    Dynamic                                               9       81
+2    programming                                           5       25
+3    breaks a                                              8       64
+4    hard problem                                          4       16
+5    into smaller                                          4       16
+6    overlapping                                           5       25
+7    subproblems and                                       1        1
+8    stores their                                          4       16
+9    answers so                                            6       36
+10   that nothing is                                       1        1
+11   computed twice                                        2        0
+Greedy first-fit penalty (comparison only) = 291
+
+=== Modified case | W = 24 ===
+Minimum total penalty = 72
+Line Words on line                                    Unused  Penalty
+1    Dynamic programming                                   5       25
+2    breaks a hard problem                                 3        9
+3    into smaller overlapping                              0        0
+4    subproblems and stores                                2        4
+5    their answers so that                                 3        9
+6    nothing is computed                                   5       25
+7    twice                                                19        0
+Greedy first-fit penalty (comparison only) = 72
+
+=== Modified case | W = 30 ===
+Minimum total penalty = 38
+Line Words on line                                    Unused  Penalty
+1    Dynamic programming breaks                            4       16
+2    a hard problem into smaller                           3        9
+3    overlapping subproblems and                           3        9
+4    stores their answers so that                          2        4
+5    nothing is computed twice                             5        0
+Greedy first-fit penalty (comparison only) = 42
+
+########## 1.4  Boundary tests ##########
+word length == W: W=5, words=['abcde', 'fg', 'hijkl'] -> penalty=9, lines=['abcde', 'fg', 'hijkl']
+single word: W=10, words=['hello'] -> penalty=0, lines=['hello']
+everything fits on one line (last line is free): W=50, words=['a', 'bb', 'ccc'] -> penalty=0, lines=['a bb ccc']
+empty text: W=10, words=[] -> penalty=0, lines=[]
+word longer than W: correctly rejected -> Word 'extraordinary' (len 13) is longer than width 5
+
+Greedy-vs-DP trap text, W=6
+=== Greedy trap | W = 6 ===
+Minimum total penalty = 10
+Line Words on line                                    Unused  Penalty
+1    aaa                                                   3        9
+2    bb cc                                                 1        1
+3    ddddd                                                 1        0
+Greedy first-fit penalty (comparison only) = 16
+

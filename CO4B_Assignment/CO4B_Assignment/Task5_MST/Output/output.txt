@@ -1,0 +1,112 @@
+########## Original graph (distinct weights) ##########
+Edges: A-B(1), C-D(2), E-F(3), G-H(4), B-C(6), D-E(7), F-G(8), A-C(9), B-D(10), C-E(11), E-G(12), D-F(13), A-H(14)
+
+  Kruskal - maintains: a sorted edge list and a disjoint-set (component labels)
+    accept A-B (1): joins two different components -> tree has 1 edges
+    accept C-D (2): joins two different components -> tree has 2 edges
+    accept E-F (3): joins two different components -> tree has 3 edges
+    accept G-H (4): joins two different components -> tree has 4 edges
+    accept B-C (6): joins two different components -> tree has 5 edges
+    accept D-E (7): joins two different components -> tree has 6 edges
+    accept F-G (8): joins two different components -> tree has 7 edges
+  Kruskal: MST edges = ['A-B(1)', 'C-D(2)', 'E-F(3)', 'G-H(4)', 'B-C(6)', 'D-E(7)', 'F-G(8)']
+  Kruskal: total cost = 31; spanning tree valid = True; work = {'find_calls': 14, 'sorted_edges': 13}
+
+  Prim from A - maintains: set of tree vertices and a heap of edges leaving the tree
+    accept A-B (1): cheapest edge leaving tree ['A'] -> adds B
+    accept B-C (6): cheapest edge leaving tree ['A', 'B'] -> adds C
+    accept C-D (2): cheapest edge leaving tree ['A', 'B', 'C'] -> adds D
+    accept D-E (7): cheapest edge leaving tree ['A', 'B', 'C', 'D'] -> adds E
+    accept E-F (3): cheapest edge leaving tree ['A', 'B', 'C', 'D', 'E'] -> adds F
+    accept F-G (8): cheapest edge leaving tree ['A', 'B', 'C', 'D', 'E', 'F'] -> adds G
+    accept G-H (4): cheapest edge leaving tree ['A', 'B', 'C', 'D', 'E', 'F', 'G'] -> adds H
+  Prim: MST edges = ['A-B(1)', 'B-C(6)', 'C-D(2)', 'D-E(7)', 'E-F(3)', 'F-G(8)', 'G-H(4)']
+  Prim: total cost = 31; spanning tree valid = True; work = {'heap_pushes': 13, 'heap_pops': 7}
+
+  Boruvka - maintains: component label of every vertex; each round every component picks its cheapest outgoing edge
+    round 1: components picked ['A-B(1)', 'C-D(2)', 'E-F(3)', 'G-H(4)']; 4 component(s) remain
+    round 2: components picked ['B-C(6)', 'D-E(7)', 'F-G(8)']; 1 component(s) remain
+  Boruvka: MST edges = ['A-B(1)', 'C-D(2)', 'E-F(3)', 'G-H(4)', 'B-C(6)', 'D-E(7)', 'F-G(8)']
+  Boruvka: total cost = 31; spanning tree valid = True; work = {'rounds': 2, 'edge_scans': 26}
+
+  All three return the same edge set: True
+
+########## Stress the design: modified graph with tied weights ##########
+Edges: A-B(1), C-D(2), E-F(3), G-H(4), B-C(6), A-C(6), D-E(7), C-E(7), F-G(8), E-G(8), B-D(10), D-F(13), A-H(14)
+
+ [Kruskal (ties by input order)]
+  Kruskal - maintains: a sorted edge list and a disjoint-set (component labels)
+    accept A-B (1): joins two different components -> tree has 1 edges
+    accept C-D (2): joins two different components -> tree has 2 edges
+    accept E-F (3): joins two different components -> tree has 3 edges
+    accept G-H (4): joins two different components -> tree has 4 edges
+    accept B-C (6): joins two different components -> tree has 5 edges
+    reject A-C (6): both ends already in one component (would form a cycle)
+    accept D-E (7): joins two different components -> tree has 6 edges
+    reject C-E (7): both ends already in one component (would form a cycle)
+    accept F-G (8): joins two different components -> tree has 7 edges
+  -> total cost = 31, edges = ['A-B(1)', 'B-C(6)', 'C-D(2)', 'D-E(7)', 'E-F(3)', 'F-G(8)', 'G-H(4)']
+
+ [Kruskal (ties in reverse order)]
+  Kruskal - maintains: a sorted edge list and a disjoint-set (component labels)
+    accept A-B (1): joins two different components -> tree has 1 edges
+    accept C-D (2): joins two different components -> tree has 2 edges
+    accept E-F (3): joins two different components -> tree has 3 edges
+    accept G-H (4): joins two different components -> tree has 4 edges
+    accept A-C (6): joins two different components -> tree has 5 edges
+    reject B-C (6): both ends already in one component (would form a cycle)
+    accept C-E (7): joins two different components -> tree has 6 edges
+    reject D-E (7): both ends already in one component (would form a cycle)
+    accept E-G (8): joins two different components -> tree has 7 edges
+  -> total cost = 31, edges = ['A-B(1)', 'A-C(6)', 'C-D(2)', 'C-E(7)', 'E-F(3)', 'E-G(8)', 'G-H(4)']
+
+ [Prim from A]
+  Prim from A - maintains: set of tree vertices and a heap of edges leaving the tree
+    accept A-B (1): cheapest edge leaving tree ['A'] -> adds B
+    accept B-C (6): cheapest edge leaving tree ['A', 'B'] -> adds C
+    accept C-D (2): cheapest edge leaving tree ['A', 'B', 'C'] -> adds D
+    accept D-E (7): cheapest edge leaving tree ['A', 'B', 'C', 'D'] -> adds E
+    accept E-F (3): cheapest edge leaving tree ['A', 'B', 'C', 'D', 'E'] -> adds F
+    accept F-G (8): cheapest edge leaving tree ['A', 'B', 'C', 'D', 'E', 'F'] -> adds G
+    accept G-H (4): cheapest edge leaving tree ['A', 'B', 'C', 'D', 'E', 'F', 'G'] -> adds H
+  -> total cost = 31, edges = ['A-B(1)', 'B-C(6)', 'C-D(2)', 'D-E(7)', 'E-F(3)', 'F-G(8)', 'G-H(4)']
+
+ [Prim from H]
+  Prim from H - maintains: set of tree vertices and a heap of edges leaving the tree
+    accept H-G (4): cheapest edge leaving tree ['H'] -> adds G
+    accept G-F (8): cheapest edge leaving tree ['G', 'H'] -> adds F
+    accept F-E (3): cheapest edge leaving tree ['F', 'G', 'H'] -> adds E
+    accept E-D (7): cheapest edge leaving tree ['E', 'F', 'G', 'H'] -> adds D
+    accept D-C (2): cheapest edge leaving tree ['D', 'E', 'F', 'G', 'H'] -> adds C
+    accept C-B (6): cheapest edge leaving tree ['C', 'D', 'E', 'F', 'G', 'H'] -> adds B
+    accept B-A (1): cheapest edge leaving tree ['B', 'C', 'D', 'E', 'F', 'G', 'H'] -> adds A
+  -> total cost = 31, edges = ['A-B(1)', 'B-C(6)', 'C-D(2)', 'D-E(7)', 'E-F(3)', 'F-G(8)', 'G-H(4)']
+
+ [Boruvka]
+  Boruvka - maintains: component label of every vertex; each round every component picks its cheapest outgoing edge
+    round 1: components picked ['A-B(1)', 'C-D(2)', 'E-F(3)', 'G-H(4)']; 4 component(s) remain
+    round 2: components picked ['B-C(6)', 'D-E(7)', 'F-G(8)']; 1 component(s) remain
+  -> total cost = 31, edges = ['A-B(1)', 'B-C(6)', 'C-D(2)', 'D-E(7)', 'E-F(3)', 'F-G(8)', 'G-H(4)']
+
+  Summary of the tied graph
+  distinct total costs: [31]  |  distinct edge sets returned: 2
+  exhaustive check: minimum spanning-tree cost = 31, number of distinct MSTs = 8
+  Every returned tree is one of the exhaustive MSTs: True
+
+########## Boruvka tie-break defect (why ties need a consistent rule) ##########
+  Triangle, all weights 1. Reasoning (hand-worked, not program output): if X picks X-Y, Y picks Y-Z and
+  Z picks Z-X in the same round, all three edges are accepted and form a cycle.
+  What this implementation does:
+   without tie-break rule (relies on the union-find cycle guard): ['X-Y', 'Y-Z'], cost 2
+   with (weight, edge-index) tie-break rule                     : ['X-Y', 'Y-Z'], cost 2
+  The union-find guard is what stops the cycle; the consistent tie-break is what makes the choice
+  deterministic and is required for the correctness proof when edges are accepted in parallel.
+
+########## Instrumented comparison for deployment analysis ##########
+  graph                      n       m     Kruskal sort+find    Prim pushes/pops    Boruvka rounds/scans
+  A sparse                2000    4000       4000 /     7984       4000 /   3992           5 /     20000   cost=5841641
+  B dense                  300   30000      30000 /     1610      30000 /    805           4 /    120000   cost=16979
+  C large sparse         20000   60000      60000 /   119356      60000 /  59678           6 /    360000   cost=39673209
+
+  Disconnected-graph failure test:
+   rejected -> graph is disconnected: no spanning tree exists

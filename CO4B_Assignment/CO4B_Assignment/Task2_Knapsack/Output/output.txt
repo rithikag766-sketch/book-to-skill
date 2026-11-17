@@ -1,0 +1,88 @@
+########## 2.1 Normal case: ratio-greedy is optimal ##########
+--- Normal case 1 (capacity fits whole items exactly: 10+20+15+5=50) (capacity = 50) ---
+    ID   Weight  Value  Value/Weight
+    A        10     60          6.00
+    B        20    100          5.00
+    C        30    120          4.00
+    D         5     20          4.00
+    E        15     45          3.00
+  Greedy decision sequence (fractional):
+    take A (w=10, v=60, ratio=6.00) -> whole, gain=60.00, capacity left=40.00
+    take B (w=20, v=100, ratio=5.00) -> whole, gain=100.00, capacity left=20.00
+    take C (w=30, v=120, ratio=4.00) -> FRACTION 0.667, gain=80.00, capacity left=0.00
+  Fractional greedy value = 240.00   items = [('A', 1.0), ('B', 1.0), ('C', 0.667)]
+  Greedy (whole items only) decision sequence:
+    commit A (w=10, v=60, ratio=6.00) -> capacity left=40
+    commit B (w=20, v=100, ratio=5.00) -> capacity left=20
+    skip   C (w=30) does not fit in 20
+    commit D (w=5, v=20, ratio=4.00) -> capacity left=15
+    commit E (w=15, v=45, ratio=3.00) -> capacity left=0
+  0/1 greedy value = 225   items = ['A', 'B', 'D', 'E']
+  0/1 DP optimum   = 225   items = ['A', 'B', 'D', 'E']   (cell updates=255)
+  GreedyResult == DPOptimum ? True
+
+--- Normal case 2 (fraction needed: fractional optimum is an upper bound) (capacity = 62) ---
+    ID   Weight  Value  Value/Weight
+    A        10     60          6.00
+    B        20    100          5.00
+    C        30    120          4.00
+    D         5     20          4.00
+    E        15     45          3.00
+  Greedy decision sequence (fractional):
+    take A (w=10, v=60, ratio=6.00) -> whole, gain=60.00, capacity left=52.00
+    take B (w=20, v=100, ratio=5.00) -> whole, gain=100.00, capacity left=32.00
+    take C (w=30, v=120, ratio=4.00) -> whole, gain=120.00, capacity left=2.00
+    take D (w=5, v=20, ratio=4.00) -> FRACTION 0.400, gain=8.00, capacity left=0.00
+  Fractional greedy value = 288.00   items = [('A', 1.0), ('B', 1.0), ('C', 1.0), ('D', 0.4)]
+  Greedy (whole items only) decision sequence:
+    commit A (w=10, v=60, ratio=6.00) -> capacity left=52
+    commit B (w=20, v=100, ratio=5.00) -> capacity left=32
+    commit C (w=30, v=120, ratio=4.00) -> capacity left=2
+    skip   D (w=5) does not fit in 2
+    skip   E (w=15) does not fit in 2
+  0/1 greedy value = 280   items = ['A', 'B', 'C']
+  0/1 DP optimum   = 280   items = ['A', 'B', 'C']   (cell updates=315)
+  GreedyResult == DPOptimum ? True
+
+########## 2.2 Break the greedy intuition ##########
+--- Student-designed counterexample (capacity = 50) ---
+    ID   Weight  Value  Value/Weight
+    P        10     60          6.00
+    Q        20    100          5.00
+    R        30    120          4.00
+  Greedy decision sequence (fractional):
+    take P (w=10, v=60, ratio=6.00) -> whole, gain=60.00, capacity left=40.00
+    take Q (w=20, v=100, ratio=5.00) -> whole, gain=100.00, capacity left=20.00
+    take R (w=30, v=120, ratio=4.00) -> FRACTION 0.667, gain=80.00, capacity left=0.00
+  Fractional greedy value = 240.00   items = [('P', 1.0), ('Q', 1.0), ('R', 0.667)]
+  Greedy (whole items only) decision sequence:
+    commit P (w=10, v=60, ratio=6.00) -> capacity left=40
+    commit Q (w=20, v=100, ratio=5.00) -> capacity left=20
+    skip   R (w=30) does not fit in 20
+  0/1 greedy value = 160   items = ['P', 'Q']
+  0/1 DP optimum   = 220   items = ['Q', 'R']   (cell updates=153)
+  GreedyResult == DPOptimum ? False
+
+  FIRST greedy commitment: P (ratio 6.00). After taking P only 40 units remain;
+  Q fits (20 left) but R(30) then no longer fits, so greedy ends with 160 < DP 220 (R+Q).
+
+########## 2.3 Engineering comparison (instrumented) ##########
+       n       W |  greedy ops(key evals)  DP cell updates  DP table cells |      frac 0/1 greedy  DP opt
+      10     100 |                     10             1010            1111 |     567.8        525     525
+          time: greedy=0.009 ms, DP=0.1 ms
+     100    1000 |                    100           100100          101101 |    7001.1       6980    6991
+          time: greedy=0.042 ms, DP=16.6 ms
+     500    5000 |                    500          2500500         2505501 |   32142.0      32139   32139
+          time: greedy=0.197 ms, DP=407.3 ms
+    1000   10000 |                   1000         10001000        10011001 |   66143.4      66137   66141
+          time: greedy=0.423 ms, DP=1768.3 ms
+
+  Solution quality over 2000 random 0/1 instances (n=20, W=100):
+    greedy was strictly worse than the DP optimum in 903/2000 instances
+    mean gap = 1.46%   worst gap = 16.97%
+  Fractional-greedy value is always >= 0/1 optimum (upper bound); checked on same set:
+    violations of  fractional >= DP optimum : 0
+
+########## 2.4 Changed requirement: 'very fast, near-optimal acceptable' ##########
+  n=1000, W=10000: greedy=66137 in 0.26 ms | DP=66141 in 1758 ms (10,001,000 cell updates) | greedy quality = 99.99% of optimum | DP is 6,859x slower
+  n=2000, W=50000: greedy=196233 in 0.55 ms | DP=196234 in 20945 ms (100,002,000 cell updates) | greedy quality = 100.00% of optimum | DP is 37,872x slower

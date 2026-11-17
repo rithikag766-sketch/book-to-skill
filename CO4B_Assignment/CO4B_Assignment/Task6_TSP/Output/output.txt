@@ -1,0 +1,81 @@
+########## 6.1 / 6.2  model and state (see report) ##########
+  state = (S, j): S = set of deliveries already visited, j = current location
+  two partial routes that both end at E but have visited {A,B,E} vs {C,D,E} are NOT interchangeable,
+  because they still have different sets of locations left to visit.
+
+########## 6.3  Route optimisation: hub + 7 delivery locations ##########
+  Input cost matrix:
+        Hub    A    B    C    D    E    F    G
+  Hub     0   12   10   19    8   14   11   16
+  A      12    0    3    7    2    9   15    6
+  B      10    3    0    6   20    5    8   13
+  C      19    7    6    0    4   12    9    7
+  D       8    2   20    4    0   10    6   11
+  E      14    9    5   12   10    0    4    8
+  F      11   15    8    9    6    4    0    5
+  G      16    6   13    7   11    8    5    0
+
+  Optimal route : Hub -> D -> C -> G -> F -> E -> B -> A -> Hub
+  Visit order   : D , C , G , F , E , B , A
+  Leg costs     : Hub->D=8, D->C=4, C->G=7, G->F=5, F->E=4, E->B=5, B->A=3, A->Hub=12
+  Minimum Travel Cost = 48   (leg sum check = 48)
+  DP work       : {'states': 448, 'transitions': 1344, 'table_entries': 448}
+
+########## 6.4  Validation: hub + 4 deliveries (exhaustive enumeration) ##########
+        Hub    A    B    C    D
+  Hub     0   12   10   19    8
+  A      12    0    3    7    2
+  B      10    3    0    6   20
+  C      19    7    6    0    4
+  D       8    2   20    4    0
+
+  All 4! = 24 candidate routes:
+    Hub -> B -> A -> C -> D -> Hub cost = 32
+    Hub -> D -> C -> A -> B -> Hub cost = 32
+    Hub -> A -> B -> C -> D -> Hub cost = 33
+    Hub -> B -> C -> A -> D -> Hub cost = 33
+    Hub -> D -> A -> C -> B -> Hub cost = 33
+    Hub -> D -> C -> B -> A -> Hub cost = 33
+    Hub -> A -> D -> C -> B -> Hub cost = 34
+    Hub -> B -> C -> D -> A -> Hub cost = 34
+    Hub -> B -> A -> D -> C -> Hub cost = 38
+    Hub -> C -> B -> A -> D -> Hub cost = 38
+    Hub -> C -> D -> A -> B -> Hub cost = 38
+    Hub -> D -> A -> B -> C -> Hub cost = 38
+    Hub -> A -> C -> B -> D -> Hub cost = 53
+    Hub -> A -> C -> D -> B -> Hub cost = 53
+    Hub -> B -> D -> C -> A -> Hub cost = 53
+    Hub -> D -> B -> C -> A -> Hub cost = 53
+    Hub -> C -> A -> B -> D -> Hub cost = 57
+    Hub -> D -> B -> A -> C -> Hub cost = 57
+    Hub -> A -> B -> D -> C -> Hub cost = 58
+    Hub -> B -> D -> A -> C -> Hub cost = 58
+    Hub -> C -> A -> D -> B -> Hub cost = 58
+    Hub -> C -> D -> B -> A -> Hub cost = 58
+    Hub -> A -> D -> B -> C -> Hub cost = 59
+    Hub -> C -> B -> D -> A -> Hub cost = 59
+
+  Exhaustive optimum : 32  via Hub -> B -> A -> C -> D -> Hub
+  DP optimum         : 32  via Hub -> D -> C -> A -> B -> Hub
+  Costs agree: True
+  Extra check: 300 random 5-delivery instances, DP vs brute force mismatches = 0
+
+########## 6.5  State-space growth ##########
+    n   DP states   n*2^(n-1)   transitions   time (s)   peak memory (MB)  n! (brute force routes)
+    4          32          32            48      0.000               0.00                       24
+    5          80          80           160      0.000               0.01                      120
+    6         192         192           480      0.001               0.03                      720
+    7         448         448         1,344      0.003               0.05                    5,040
+    8       1,024       1,024         3,584      0.011               0.15                   40,320
+    9       2,304       2,304         9,216      0.032               0.33                  362,880
+   10       5,120       5,120        23,040      0.086               0.83                3,628,800
+   11      11,264      11,264        56,320      0.226               2.80               39,916,800
+   12      24,576      24,576       135,168      0.542               5.90              479,001,600
+   13      53,248      53,248       319,488      1.424              12.66            6,227,020,800
+   14     114,688     114,688       745,472      3.479              26.39           87,178,291,200
+
+########## Boundary / failure tests ##########
+  1 delivery: cost=12, route=[0, 1, 0] (expected 5+7=12)
+  non-square matrix rejected -> cost matrix must be square
+  negative cost rejected -> negative travel cost at (0,1)
+  asymmetric costs handled: cost=3, route=[0, 1, 2, 0] (expected 3 via 0->1->2->0)
